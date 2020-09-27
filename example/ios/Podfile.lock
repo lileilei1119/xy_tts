@@ -1,0 +1,22 @@
+PODS:
+  - Flutter (1.0.0)
+  - xy_tts (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - xy_tts (from `.symlinks/plugins/xy_tts/ios`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  xy_tts:
+    :path: ".symlinks/plugins/xy_tts/ios"
+
+SPEC CHECKSUMS:
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  xy_tts: 47e6f000ec01c5bcefd644c182529939b1a2ca2a
+
+PODFILE CHECKSUM: 8e679eca47255a8ca8067c4c67aab20e64cb974d
+
+COCOAPODS: 1.9.0
