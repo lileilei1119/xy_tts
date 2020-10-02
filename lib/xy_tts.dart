@@ -4,8 +4,13 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 class XyTts {
+
   static const MethodChannel _channel =
       const MethodChannel('xy_tts');
+
+  static double rate = 0.5;
+  static double pitch = 1.0;
+  static String language = "zh-CN";
 
   static Future<String> get platformVersion async {
     final String version = await _channel.invokeMethod('getPlatformVersion');
@@ -14,9 +19,30 @@ class XyTts {
 
   static Future<void> startTTS(String content) async {
     final Map<String,dynamic> params = <String,dynamic>{
-      "content":content
+      "content":content,
+      "rate":rate,
+      "pitch":pitch,
+      "language":language
     };
     await _channel.invokeMethod('startTTS',params);
+  }
+
+  static Future<void> stopTTS() async {
+    final Map<String,dynamic> params = <String,dynamic>{
+    };
+    await _channel.invokeMethod('stopTTS',params);
+  }
+
+  static Future<void> pauseTTS() async {
+    final Map<String,dynamic> params = <String,dynamic>{
+    };
+    await _channel.invokeMethod('pauseTTS',params);
+  }
+
+  static Future<void> continueTTS() async {
+    final Map<String,dynamic> params = <String,dynamic>{
+    };
+    await _channel.invokeMethod('continueTTS',params);
   }
 
 }

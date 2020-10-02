@@ -97,6 +97,8 @@ public class XyTtsPlugin implements FlutterPlugin, MethodCallHandler {
     } else if (call.method.equals("startTTS")) {
 //      result.success("Android " + android.os.Build.VERSION.RELEASE);
       startTTS((Map<String, Object>) call.arguments);
+    } else if (call.method.equals("stopTTS")) {
+      stopTTS((Map<String, Object>) call.arguments);
     } else {
       result.notImplemented();
     }
@@ -118,4 +120,10 @@ public class XyTtsPlugin implements FlutterPlugin, MethodCallHandler {
     String content = (String)arguments.get("content");
     tts.speak(content,TextToSpeech.QUEUE_FLUSH,null,"222");
   }
+
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+  private void stopTTS(Map<String,Object> arguments) {
+    tts.stop();
+  }
+
 }
