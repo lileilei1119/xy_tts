@@ -1,12 +1,10 @@
 package com.xeeyao.xy_tts;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
-import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
-import android.view.View;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -20,7 +18,6 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /** XyTtsPlugin */
@@ -39,11 +36,11 @@ public class XyTtsPlugin implements FlutterPlugin, MethodCallHandler {
     channel.setMethodCallHandler(this);
     mContext = flutterPluginBinding.getApplicationContext();
 
-    tts = new TextToSpeech(mContext, new TextToSpeech.OnInitListener() {
+    speech = new TextToSpeech(mContext, new TextToSpeech.OnInitListener() {
       @Override
       public void onInit(int status) {
         if (status == TextToSpeech.SUCCESS) {
-          int result = tts.setLanguage(Locale.CHINA);
+          int result = speech.setLanguage(Locale.CHINA);
           if (result != TextToSpeech.LANG_COUNTRY_AVAILABLE && result != TextToSpeech.LANG_AVAILABLE) {
             Toast.makeText(mContext, "TTS不支持中文", Toast.LENGTH_SHORT).show();
           }
@@ -51,7 +48,7 @@ public class XyTtsPlugin implements FlutterPlugin, MethodCallHandler {
       }
     });
 
-    tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+    speech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
       @Override
       public void onStart(String utteranceId) {
         //utteranceId是speak方法中最后一个参数：唯一标识码
@@ -59,7 +56,7 @@ public class XyTtsPlugin implements FlutterPlugin, MethodCallHandler {
 
       @Override
       public void onDone(String utteranceId) {
-
+        Log.i("xy_tts","onDone");
       }
 
       @Override
@@ -104,7 +101,7 @@ public class XyTtsPlugin implements FlutterPlugin, MethodCallHandler {
     }
   }
 
-  private TextToSpeech tts;
+  private TextToSpeech speech;
 
   @Override
   public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
@@ -113,17 +110,29 @@ public class XyTtsPlugin implements FlutterPlugin, MethodCallHandler {
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   private void startTTS(Map<String,Object> arguments) {
-    tts.setSpeechRate(1.0f);
+    float rate = ((Double)arguments.get("rate")).floatValue();
+    speech.setSpeechRate(rate);
     //设置语调
-    tts.setPitch(1.5f);
+    float pitch = ((Double)arguments.get("pitch")).floatValue();
+    speech.setPitch(pitch);
     //开始朗读
     String content = (String)arguments.get("content");
-    tts.speak(content,TextToSpeech.QUEUE_FLUSH,null,"222");
+    speech.speak(content,TextToSpeech.QUEUE_FLUSH,null,"xy_tts");
   }
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   private void stopTTS(Map<String,Object> arguments) {
-    tts.stop();
+    speech.stop();
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+  private void pauseTTS(Map<String,Object> arguments) {
+//    speech.stop();
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+  private void continueTTS(Map<String,Object> arguments) {
+//    speech.stop();
   }
 
 }
