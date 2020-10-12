@@ -3,19 +3,21 @@ import 'package:flutter/services.dart';
 
 class XyTts {
 
-  static const MethodChannel _channel =
+  static const MethodChannel channel =
       const MethodChannel('xy_tts');
+  static const EventChannel eventChannel =
+  const EventChannel('xy_tts_event');
 
   static double rate = 1.0;
   static double pitch = 1.0;
   static String language = "zh-CN";
 
   static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
+    final String version = await channel.invokeMethod('getPlatformVersion');
     return version;
   }
 
-  static Future<void> startTTS(String content) async {
+  static Future<Map<String,dynamic>> startTTS(String content) async {
     double normalRate = 1.0;
     if(Platform.isIOS){
       normalRate = 0.5;
@@ -28,25 +30,25 @@ class XyTts {
       "pitch":pitch,
       "language":language
     };
-    await _channel.invokeMethod('startTTS',params);
+    return await channel.invokeMethod('startTTS',params);
   }
 
   static Future<void> stopTTS() async {
     final Map<String,dynamic> params = <String,dynamic>{
     };
-    await _channel.invokeMethod('stopTTS',params);
+    await channel.invokeMethod('stopTTS',params);
   }
 
   static Future<void> pauseTTS() async {
     final Map<String,dynamic> params = <String,dynamic>{
     };
-    await _channel.invokeMethod('pauseTTS',params);
+    await channel.invokeMethod('pauseTTS',params);
   }
 
   static Future<void> continueTTS() async {
     final Map<String,dynamic> params = <String,dynamic>{
     };
-    await _channel.invokeMethod('continueTTS',params);
+    await channel.invokeMethod('continueTTS',params);
   }
 
 }
