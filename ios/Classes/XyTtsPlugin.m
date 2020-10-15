@@ -1,9 +1,11 @@
 #import "XyTtsPlugin.h"
 #import <AVFoundation/AVFoundation.h>
 
-@interface XyTtsPlugin ()<AVSpeechSynthesizerDelegate>
+@interface XyTtsPlugin ()<AVSpeechSynthesizerDelegate,FlutterStreamHandler>
 
 @property(nonatomic,strong) AVSpeechSynthesizer *synthesizer;
+
+@property (nonatomic, strong) FlutterEventSink eventSink;
 
 @end
 
@@ -17,6 +19,9 @@
     [registrar addMethodCallDelegate:instance channel:channel];
     
     instance.synthesizer = [[AVSpeechSynthesizer alloc]init];
+    
+    FlutterEventChannel *eventChannel = [FlutterEventChannel eventChannelWithName:@"xy_tts_event" binaryMessenger:[registrar messenger]];
+    [eventChannel setStreamHandler:instance];
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -77,30 +82,62 @@
 }
 
 
+#pragma mark - FlutterStreamHandler
+- (FlutterError* _Nullable)onListenWithArguments:(id _Nullable)arguments
+                                       eventSink:(FlutterEventSink)eventSink{
+    self.eventSink = eventSink;
+    return nil;
+}
+ 
+- (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
+    return nil;
+}
+
 #pragma mark AVSpeechSynthesizerDelegate
 /************ 开始播放 *****************************/
 - (void)speechSynthesizer:(AVSpeechSynthesizer*)synthesizer didStartSpeechUtterance:(AVSpeechUtterance*)utterance {
-    
+    NSDictionary *dic = @{
+        @"route":@"onStart",
+        @"utteranceId":utterance.voice.identifier
+    };
+    self.eventSink(dic);
 }
  
 /************ 完成播放 *****************************/
 - (void)speechSynthesizer:(AVSpeechSynthesizer*)synthesizer didFinishSpeechUtterance:(AVSpeechUtterance*)utterance {
     NSLog(@"tts finish");
+    NSDictionary *dic = @{
+        @"route":@"onFinish",
+        @"utteranceId":utterance.voice.identifier
+    };
+    self.eventSink(dic);
 }
  
 /************ 播放中止 *****************************/
 - (void)speechSynthesizer:(AVSpeechSynthesizer*)synthesizer didPauseSpeechUtterance:(AVSpeechUtterance*)utterance {
-    
+    NSDictionary *dic = @{
+        @"route":@"onPause",
+        @"utteranceId":utterance.voice.identifier
+    };
+    self.eventSink(dic);
 }
  
 /************ 恢复播放 *****************************/
 - (void)speechSynthesizer:(AVSpeechSynthesizer*)synthesizer didContinueSpeechUtterance:(AVSpeechUtterance*)utterance {
-    
+    NSDictionary *dic = @{
+        @"route":@"onContinue",
+        @"utteranceId":utterance.voice.identifier
+    };
+    self.eventSink(dic);
 }
  
 /************ 播放取消 *****************************/
 - (void)speechSynthesizer:(AVSpeechSynthesizer*)synthesizer didCancelSpeechUtterance:(AVSpeechUtterance*)utterance {
-    
+    NSDictionary *dic = @{
+        @"route":@"onCancel",
+        @"utteranceId":utterance.voice.identifier
+    };
+    self.eventSink(dic);
 }
 
 @end
