@@ -17,7 +17,7 @@ class XyTts {
     return version;
   }
 
-  static Future<Map<String,dynamic>> startTTS(String content) async {
+  static Future<Map<String,dynamic>> startTTS(String title,String content) async {
     double normalRate = 1.0;
     if(Platform.isIOS){
       normalRate = 0.5;
@@ -25,6 +25,7 @@ class XyTts {
 
     }
     final Map<String,dynamic> params = <String,dynamic>{
+      "title":title,
       "content":content,
       "rate":rate * normalRate,
       "pitch":pitch,

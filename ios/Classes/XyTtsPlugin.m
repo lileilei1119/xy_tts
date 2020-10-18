@@ -1,5 +1,6 @@
 #import "XyTtsPlugin.h"
 #import <AVFoundation/AVFoundation.h>
+#import <MediaPlayer/MediaPlayer.h>
 
 @interface XyTtsPlugin ()<AVSpeechSynthesizerDelegate,FlutterStreamHandler>
 
@@ -22,6 +23,60 @@
     
     FlutterEventChannel *eventChannel = [FlutterEventChannel eventChannelWithName:@"xy_tts_event" binaryMessenger:[registrar messenger]];
     [eventChannel setStreamHandler:instance];
+    
+    [registrar addApplicationDelegate:instance];
+}
+
+
+#pragma --mark 生命周期
+- (BOOL)application:(UIApplication*)application
+didFinishLaunchingWithOptions:(NSDictionary*)launchOptions{
+    
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    [audioSession setCategory:AVAudioSessionCategoryPlayback error:nil];
+    [audioSession setActive:YES error:nil];
+    [self createRemoteCommandCenter];
+    return YES;
+}
+
+//锁屏界面开启和监控远程控制事件
+- (void)createRemoteCommandCenter{
+    /**/
+    //远程控制命令中心 iOS 7.1 之后  详情看官方文档：https://developer.apple.com/documentation/mediaplayer/mpremotecommandcenter
+
+    MPRemoteCommandCenter *commandCenter = [MPRemoteCommandCenter sharedCommandCenter];
+
+//    commandCenter.togglePlayPauseCommand 耳机线控的暂停/播放
+
+    [commandCenter.pauseCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent * _Nonnull event) {
+        NSDictionary *dic = @{
+            @"route":@"onRemotePause",
+        };
+        self.eventSink(dic);
+        return MPRemoteCommandHandlerStatusSuccess;
+    }];
+    [commandCenter.playCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent * _Nonnull event) {
+        NSDictionary *dic = @{
+            @"route":@"onRemotePlay",
+        };
+        self.eventSink(dic);
+        return MPRemoteCommandHandlerStatusSuccess;
+    }];
+    [commandCenter.previousTrackCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent * _Nonnull event) {
+        NSDictionary *dic = @{
+            @"route":@"onRemotePre",
+        };
+        self.eventSink(dic);
+            return MPRemoteCommandHandlerStatusSuccess;
+        }];
+
+    [commandCenter.nextTrackCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent * _Nonnull event) {
+        NSDictionary *dic = @{
+            @"route":@"onRemoteNext",
+        };
+        self.eventSink(dic);
+        return MPRemoteCommandHandlerStatusSuccess;
+    }];
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -35,9 +90,21 @@
         [self pauseTTS:call.arguments];
     }else if([@"continueTTS" isEqualToString:call.method]){
         [self continueTTS:call.arguments];
+    }else if([@"setPlayingInfo" isEqualToString:call.method]){
+        [self setPlayingInfo:call.arguments];
     }else {
         result(FlutterMethodNotImplemented);
     }
+}
+
+- (void)setPlayingInfo:(NSDictionary*)arguments {
+    NSString *title = arguments[@"title"];
+//  MPMediaItemArtwork *artWork = [[MPMediaItemArtwork alloc] initWithImage:[UIImage imageNamed:@"pushu.jpg"]];
+  NSDictionary *dic = @{MPMediaItemPropertyTitle:title,
+//             MPMediaItemPropertyArtist:@"朴树",
+//             MPMediaItemPropertyArtwork:artWork
+             };
+  [[MPNowPlayingInfoCenter defaultCenter] setNowPlayingInfo:dic];
 }
 
 /**
@@ -67,6 +134,8 @@
         [self.synthesizer stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
     }
     [self.synthesizer speakUtterance:utterance];
+    
+    [self setPlayingInfo:arguments];
 }
 
 -(void)stopTTS:(NSDictionary*)arguments{
